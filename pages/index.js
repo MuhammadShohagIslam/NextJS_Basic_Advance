@@ -1,35 +1,72 @@
+import { Fragment, useRef, useState } from "react";
 /*
- *** NextJS pre-rendering page automatically dy default, but if use getStaticPros(context){} 
- which tells to NextJS will not pre rendered a page, it's kind of confirm to NextJS to JS that
-  this page still should be pre-generated. It's run on the server, 
-  not in the browser and during the build process, after it was deployed
- */
-function HomePage(props) {
-    const { products } = props;
-    return (
-        <>
-            <h2>This is home page</h2>
+    *** API Routes ***
+        => Application Programming Interface
+        => REST API = Representational State Transfer (a specific form / structure for web APIs)
+        => Data is typically transferred in JSON (JavaScript Object Notation) format.
+        => URLs that do not return pages (HTML), but return or provide a (REST) API or RAW Data with JSON Format.
+        => Request are typically not sent by entering URL in browser but via JavaScript code (Ajax).
+    
+        Clinet(Browser, Mobile App, Shell...) -------Req Data -------> Server
+                                                                   <----- Res Data ---------
+*/
 
-            <ul>
-                {products.map((product) => (
-                    <li key={product.id}>{product.title}</li>
-                ))}
-            </ul>
-        </>
+
+function HomePage() {
+    const [loadingFeedBackData, setLoadingFeedbackData] = useState([]);
+    const inputEmailRef = useRef();
+    const inputTextRef = useRef();
+
+    function handleSubmit(event) {
+        event.preventDefault();
+        const inputEmailValue = inputEmailRef.current.value;
+        const inputTextValue = inputTextRef.current.value;
+        const reqBody = {
+            email: inputEmailValue,
+            text: inputTextValue,
+        };
+
+        fetch("/api/feedback", {
+            method: "POST",
+            body: JSON.stringify(reqBody),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then((response) => response.json())
+            .then((data) => console.log(data));
+    }
+    function handleLoading() {
+        fetch("/api/feedback")
+            .then((response) => response.json())
+            .then((data) => setLoadingFeedbackData(data.feedback));
+    }
+    return (
+        <Fragment>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label htmlFor="email">Title</label>
+                    <input id="email" type="email" ref={inputEmailRef} />
+                </div>
+                <div>
+                    <label htmlFor="text">Title</label>
+                    <textarea id="text" rows="5" ref={inputTextRef}></textarea>
+                </div>
+                <button type="submit">Send</button>
+            </form>
+            <div>
+                <button type="button" onClick={handleLoading}>
+                    Loading Feedback Data
+                </button>
+                <ul>
+                    {loadingFeedBackData && loadingFeedBackData.map(feedback => (
+                        <li key={feedback.id}>{feedback.email}</li>
+                    ))}
+                </ul>
+            </div>
+        </Fragment>
     );
 }
 
-export async function getStaticProps() {
-    return {
-        props: {
-            products: [
-                {
-                    id: "p1",
-                    title: "Product 1",
-                },
-            ],
-        },
-    };
-}
-
 export default HomePage;
+
